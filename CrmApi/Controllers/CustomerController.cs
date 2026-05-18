@@ -1,22 +1,22 @@
-﻿using CrmApi.Core.Entities;
-using CrmApi.Data;
+﻿using CrmApi.Data.Interface;
+using CrmApi.Data.Entities;
 
 namespace CrmApi.Controllers;
 
-public static class CustomerEndpoints
+public static class CustomerController
 {
     // This method defines all the API endpoints related to customers
     public static void MapCustomerEndpoints(this WebApplication app)
     {
         // ---------------------- GET CUSTOMERS ----------------------
         // Get all customers
-        app.MapGet("/customers", async (CustomerRepository repository) =>
+        app.MapGet("/customers", async (ICustomerRepo repository) =>
         {
             return Results.Ok(await repository.GetAllAsync());
         });
 
         // Get one customer by id
-        app.MapGet("/customers/{id}", async (string id, CustomerRepository repository) =>
+        app.MapGet("/customers/{id}", async (string id, ICustomerRepo repository) =>
         {
             Customer? customer = await repository.GetByIdAsync(id);
 
@@ -29,7 +29,7 @@ public static class CustomerEndpoints
         });
 
         // ----------------------- CREATE CUSTOMER -------------------------
-        app.MapPost("/customers", async (Customer customer, CustomerRepository repository) =>
+        app.MapPost("/customers", async (Customer customer, ICustomerRepo repository) =>
         {
             if (string.IsNullOrWhiteSpace(customer.ResponsibleSeller.Email))
             {
@@ -42,7 +42,7 @@ public static class CustomerEndpoints
         });
 
         // ----------------------- UPDATE CUSTOMER -------------------------
-        app.MapPut("/customers/{id}", async (string id, Customer updatedCustomer, CustomerRepository repository) =>
+        app.MapPut("/customers/{id}", async (string id, Customer updatedCustomer, ICustomerRepo repository) =>
         {
             Customer? customer = await repository.UpdateAsync(id, updatedCustomer);
 
@@ -55,7 +55,7 @@ public static class CustomerEndpoints
         });
 
         // ----------------------- DELETE CUSTOMER -------------------------
-        app.MapDelete("/customers/{id}", async (string id, CustomerRepository repository) =>
+        app.MapDelete("/customers/{id}", async (string id, ICustomerRepo repository) =>
         {
             bool deleted = await repository.DeleteAsync(id);
 
@@ -69,7 +69,7 @@ public static class CustomerEndpoints
 
         // ----------------------- SEARCH CUSTOMERS -------------------------
         // Search by customer name
-        app.MapGet("/customers/search/name/{name}", async (string name, CustomerRepository repository) =>
+        app.MapGet("/customers/search/name/{name}", async (string name, ICustomerRepo repository) =>
         {
             var result = await repository.SearchByCustomerNameAsync(name);
 
@@ -77,7 +77,7 @@ public static class CustomerEndpoints
         });
 
         // Search by responsible seller name
-        app.MapGet("/customers/search/seller/{sellerName}", async (string sellerName, CustomerRepository repository) =>
+        app.MapGet("/customers/search/seller/{sellerName}", async (string sellerName, ICustomerRepo repository) =>
         {
             var result = await repository.SearchBySellerNameAsync(sellerName);
 

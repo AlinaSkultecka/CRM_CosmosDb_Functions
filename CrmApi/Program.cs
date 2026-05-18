@@ -1,34 +1,11 @@
 using CrmApi.Controllers;
-using CrmApi.Data;
-using Microsoft.Azure.Cosmos;
+using CrmApi.Data.Interface;
+using CrmApi.Data.Repo;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Read Cosmos DB settings from appsettings.json
-string endpoint = builder.Configuration["CosmosDb:Endpoint"]!;
-string key = builder.Configuration["CosmosDb:Key"]!;
-string databaseName = builder.Configuration["CosmosDb:DatabaseName"]!;
-string containerName = builder.Configuration["CosmosDb:ContainerName"]!;
-
-// Create CosmosClient.
-// This client is used to communicate with Cosmos DB Emulator.
-CosmosClient cosmosClient = new CosmosClient(endpoint, key);
-
-// Create database if it does not already exist
-Database database = await cosmosClient.CreateDatabaseIfNotExistsAsync(databaseName);
-
-// Create container if it does not already exist.
-// We use "/id" as partition key for beginner simplicity.
-Container container = await database.CreateContainerIfNotExistsAsync(
-    id: containerName,
-    partitionKeyPath: "/id"
-);
-
-// Register the Cosmos container for dependency injection
-builder.Services.AddSingleton(container);
-
-// Register CustomerRepository so endpoints can use it
-builder.Services.AddSingleton<CustomerRepository>();
+// Register CustomerRepo so endpoints can use it
+builder.Services.AddSingleton<ICustomerRepo, CustomerRepo>();
 
 var app = builder.Build();
 

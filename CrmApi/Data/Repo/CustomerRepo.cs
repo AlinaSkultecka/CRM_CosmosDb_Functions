@@ -1,20 +1,37 @@
-﻿using CrmApi.Core.Entities;
+﻿using CrmApi.Data.Entities;
+using CrmApi.Data.Interface;
 using Microsoft.Azure.Cosmos;
 
-namespace CrmApi.Data;
+namespace CrmApi.Data.Repo;
 
 // This class is responsible for storing and managing customers in Cosmos DB
-public class CustomerRepository
+public class CustomerRepo : ICustomerRepo
 {
+    // Cosmos client instance
+    private readonly CosmosClient _cosmosClient;
+    private readonly Database _database;
     private readonly Container _container;
 
-    // Cosmos DB container is injected from Program.cs
-    public CustomerRepository(Container container)
+    public CustomerRepo(IConfiguration configuration)
     {
-        _container = container;
+        // Read Cosmos DB settings from appsettings.json
+        string endpointUri = configuration["CosmosDb:EndpointUri"]!;
+        string primaryKey = configuration["CosmosDb:PrimaryKey"]!;
+        string databaseName = configuration["CosmosDb:DatabaseName"]!;
+        string containerName = configuration["CosmosDb:ContainerName"]!;
+
+        // Create connection to Cosmos DB Emulator
+        _cosmosClient = new CosmosClient(endpointUri, primaryKey);
+
+        // Get the database
+        _database = _cosmosClient.GetDatabase(databaseName);
+
+        // Get the container
+        _container = _database.GetContainer(containerName);
     }
 
     // -------------------- GET CUSTOMERS --------------------
+
     // Get all customers
     public async Task<List<Customer>> GetAllAsync()
     {
@@ -52,8 +69,10 @@ public class CustomerRepository
     }
 
     // -------------------- CREATE CUSTOMER --------------------
+
     public async Task<Customer> AddAsync(Customer customer)
     {
+        // Create a new unique ID for the customer
         customer.Id = Guid.NewGuid().ToString();
 
         try
@@ -77,6 +96,7 @@ public class CustomerRepository
     }
 
     // -------------------- UPDATE CUSTOMER --------------------
+
     public async Task<Customer?> UpdateAsync(string id, Customer updatedCustomer)
     {
         Customer? existingCustomer = await GetByIdAsync(id);
@@ -86,6 +106,7 @@ public class CustomerRepository
             return null;
         }
 
+        // Keep the same ID when updating
         updatedCustomer.Id = id;
 
         ItemResponse<Customer> response = await _container.ReplaceItemAsync(
@@ -98,6 +119,7 @@ public class CustomerRepository
     }
 
     // -------------------- DELETE CUSTOMER --------------------
+
     public async Task<bool> DeleteAsync(string id)
     {
         Customer? existingCustomer = await GetByIdAsync(id);
@@ -116,7 +138,8 @@ public class CustomerRepository
     }
 
     // -------------------- SEARCH CUSTOMERS --------------------
-    // Search customers by name (case-insensitive, partial match)
+
+    // Search customers by name
     public async Task<List<Customer>> SearchByCustomerNameAsync(string name)
     {
         var query = new QueryDefinition(
@@ -126,8 +149,8 @@ public class CustomerRepository
 
         return await RunQueryAsync(query);
     }
-   
-    // Search customers by responsible seller's name (case-insensitive, partial match)
+
+    // Search customers by responsible seller's name
     public async Task<List<Customer>> SearchBySellerNameAsync(string sellerName)
     {
         var query = new QueryDefinition(
@@ -138,7 +161,7 @@ public class CustomerRepository
         return await RunQueryAsync(query);
     }
 
-    // Helper method to run a query and return the results as a list of customers
+    // Helper method to run Cosmos DB queries
     private async Task<List<Customer>> RunQueryAsync(QueryDefinition query)
     {
         var customers = new List<Customer>();

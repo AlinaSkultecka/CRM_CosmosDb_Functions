@@ -1,4 +1,4 @@
-﻿namespace CrmApi.Core.Entities;
+﻿namespace CrmApi.Data.Entities;
 
 public class Seller
 {

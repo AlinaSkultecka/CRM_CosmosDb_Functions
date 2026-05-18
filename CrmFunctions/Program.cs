@@ -5,6 +5,8 @@ using Microsoft.Extensions.Hosting;
 
 var builder = FunctionsApplication.CreateBuilder(args);
 
+// Configure Azure Functions isolated worker
 builder.ConfigureFunctionsWebApplication();
 
+// Build and run the Function app
 builder.Build().Run();

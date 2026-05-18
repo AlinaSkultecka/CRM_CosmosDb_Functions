@@ -1,6 +1,6 @@
 ﻿using Newtonsoft.Json;
 
-namespace CrmApi.Core.Entities;
+namespace CrmApi.Data.Entities;
 
 // This class represents one customer document in Cosmos DB
 public class Customer
