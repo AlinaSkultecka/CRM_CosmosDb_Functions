@@ -361,3 +361,9 @@ MigrationBackup/
 
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
+/CrmFunctions/__azurite_db_blob__.json
+/CrmFunctions/__azurite_db_blob_extent__.json
+/CrmFunctions/__azurite_db_queue__.json
+/CrmFunctions/__azurite_db_queue_extent__.json
+/CrmFunctions/__azurite_db_table__.json
+/CrmFunctions/AzuriteConfig
