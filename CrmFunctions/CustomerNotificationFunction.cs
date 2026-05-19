@@ -21,7 +21,7 @@ public class CustomerNotificationFunction
     // Configuration is used to read settings like SMTP host, username, password, etc.
     private readonly IConfiguration _configuration;
 
-    // Constructor.
+    // Constructor
     // Azure Functions automatically injects logger and configuration here.
     public CustomerNotificationFunction(
         ILogger<CustomerNotificationFunction> logger,
@@ -35,8 +35,7 @@ public class CustomerNotificationFunction
     [Function("CustomerNotificationFunction")]
     public async Task Run(
         // Cosmos DB trigger.
-        // This function will run when a customer is added or updated
-        // in the Customers container inside the CrmDb database.
+        // This function will run when a customer is added or updated in the Customers container inside the CrmDb 
         [CosmosDBTrigger(
             databaseName: "CrmDb",
             containerName: "Customers",
@@ -52,7 +51,6 @@ public class CustomerNotificationFunction
         }
 
         // The trigger can send one or more changed customers at the same time.
-        // So we loop through all changed customers.
         foreach (Customer customer in customers)
         {
             // Check that the customer has a responsible seller email.
@@ -78,7 +76,6 @@ public class CustomerNotificationFunction
     private async Task SendEmailToSellerAsync(Customer customer)
     {
         // Read SMTP settings from configuration.
-        // These values should be stored in local.settings.json for local testing.
         string smtpHost = _configuration["MailSettings:SmtpHost"]!;
         int smtpPort = int.Parse(_configuration["MailSettings:SmtpPort"]!);
         string username = _configuration["MailSettings:Username"]!;
@@ -92,7 +89,6 @@ public class CustomerNotificationFunction
         message.From.Add(MailboxAddress.Parse(fromEmail));
 
         // Set receiver email address.
-        // In this assignment, the receiver is the responsible seller.
         message.To.Add(MailboxAddress.Parse(customer.ResponsibleSeller.Email));
 
         // Set email subject.
@@ -103,29 +99,28 @@ public class CustomerNotificationFunction
         message.Body = new TextPart("plain")
         {
             Text =
-$"""
-Hello {customer.ResponsibleSeller.Name},
+                $"""
+                Hello {customer.ResponsibleSeller.Name},
 
-You are responsible for this customer.
+                You are responsible for this customer.
 
-Customer information:
-Name: {customer.Name}
-Title: {customer.Title}
-Phone: {customer.Phone}
-Email: {customer.Email}
-Address: {customer.Address}
+                Customer information:
+                Name: {customer.Name}
+                Title: {customer.Title}
+                Phone: {customer.Phone}
+                Email: {customer.Email}
+                Address: {customer.Address}
 
-Responsible seller:
-Name: {customer.ResponsibleSeller.Name}
-Phone: {customer.ResponsibleSeller.Phone}
-Email: {customer.ResponsibleSeller.Email}
+                Responsible seller:
+                Name: {customer.ResponsibleSeller.Name}
+                Phone: {customer.ResponsibleSeller.Phone}
+                Email: {customer.ResponsibleSeller.Email}
 
-This message was sent automatically from the CRM system.
-"""
+                This message was sent automatically from the CRM system.
+                """
         };
 
         // Create SMTP client.
-        // using var means it will be disposed automatically after sending.
         using var smtpClient = new SmtpClient();
 
         // Connect to the SMTP server.
